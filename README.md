@@ -1,7 +1,29 @@
-# todolistapp
-ToDo List App
+Taskmaster - To Do List Web Application by *Sean Park*
+======================================================
 
-A ToDo List App created by following "The Complete 2020 Web Development Bootcamp" Udemy course by Dr. Angela Yu from App Brewery.
-This app will be further modified with features added by me, Sean Park.
+Languages & Technologies
+------------------------
+- Front End
+  - HTML
+  - CSS
+  - JavaScript
+  - Bootstrap
 
-First interation created in May 2020.
+- Back End
+  - Node.js
+  - Express.js
+  - MongoDB
+  - Mongoose
+  - EJS
+
+Heroku deployment:
+------------------
+(https://damp-meadow-79348.herokuapp.com/)
+
+
+Installation:
+----------------
+
+
+Clone:
+---------
