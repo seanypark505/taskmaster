@@ -5,7 +5,7 @@ Changelog
 First released version of Taskmaster only had the functionality of creating a To Do item.
 However, there was no database to perform CRUD operations.
 
-## 2.0 - <!-- 2020-07-? -->
+## 2.0 - 2020-07-27
 ### Added
 - Connected Taskmaster to MongoDB 4.2 to store To Do list items.
 - Mongoose v5.9.25 being used to provide schema validation and CRUD operations.
