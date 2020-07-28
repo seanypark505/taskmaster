@@ -1,13 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const date = require('./date.js');
+const mongoose= require('mongoose');
+const _ = require('lodash');
 const port = process.env.PORT || 3000;
 
 const app = express();
-
-// Array of List Items
-const items = [];
-const workItems = [];
 
 app.set('view engine', 'ejs');
 
@@ -15,40 +12,144 @@ app.set('view engine', 'ejs');
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/public'));
 
-// Display's Local Date and Time by using date.js module calling getDate function
-app.get('/', (req, res) => {
-  const day = date.getDate();
-  res.render('list', {listTitle: day, newListItems: items});
+// Mongoose Connection
+mongoose.connect('mongodb://localhost:27017/todoDB', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
 });
 
-// Directs to appropriate Home or Work Route depending on type of List
-app.post('/', (req, res) => {
-  const item = req.body.newItem;
-  if (req.body.list === 'Work') {
-    workItems.push(item);
-    res.redirect('/work');
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  console.log("Connected to todoDB");
+});
+
+// ToDo Item Schema
+const Schema = mongoose.Schema;
+const itemsSchema = new Schema ({
+  name: String,
+});
+
+// ToDo Item Model
+const Item = mongoose.model('Item', itemsSchema);
+
+const welcome = new Item ({
+  name: 'Welcome to Taskmaster - ToDo List'
+});
+
+const addItemHelp = new Item ({
+  name: 'Hit the + button to add a new item.'
+});
+
+const deleteItemHelp = new Item ({
+  name: '<-- Click the checkbox to delete an item.'
+});
+
+// Starting Items for How-To
+const defaultItems = [welcome, addItemHelp, deleteItemHelp];
+
+// Custom List schema
+const listSchema = new Schema ({
+  name: String,
+  items: [itemsSchema]
+});
+
+const List = mongoose.model("List", listSchema);
+
+// Render Home Route
+app.get('/', (req, res) => {
+  Item.find({}, function (err, foundItems) {
+    if (foundItems.length === 0) {
+      Item.insertMany(defaultItems, function(err) {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log('Default Items have been added to Home Screen');
+        }
+      });
+      res.redirect('/');
+    } else {
+      res.render('list', {listTitle: "Today", newListItems: foundItems});
+    }
+  });
+});
+
+// Get items from custom user generated list
+app.get('/:customListName', (req, res) => {
+  const customListName = _.capitalize(req.params.customListName);
+  // Prevents the user from creating an about list collection, this will route to the /about page.
+  if (req.params.customListName === "About") {
+    res.render('about');
   } else {
-    items.push(item);
-    res.redirect('/');
+    List.findOne({name: customListName}, function(err, foundList) {
+      if (!err) {
+        if (!foundList) {
+          // Create a new list
+          const list = new List({
+            name: customListName,
+            items: defaultItems
+          });
+          // Save the new list
+          list.save(function() {
+            res.redirect('/' + customListName);
+          });
+        } else {
+          // Show an existing list
+          res.render('list', {listTitle: foundList.name , newListItems: foundList.items});
+        }
+      }
+    });
   }
 });
 
-// Get items from Work Route
-app.get('/work', (req, res) => {
-  const day = date.getDay();
-  res.render('list', {listTitle: day + " Work List", newListItems: workItems});
-});
+// Posts new items to appropriate route
+// New item is added to the database via Item Model.
+app.post('/', (req, res) => {
+  const itemName = req.body.newItem;
+  const listName = req.body.list;
 
-// Post items form Work Route
-app.post('/work', (req, res) => {
-  const item = req.body.newItem;
-  workItems.push(item);
-  res.redirect('/work');
+  const item = new Item ({
+    name: itemName
+  });
+// Home Route List
+  if (listName === "Today") {
+    item.save();
+    res.redirect('/');
+  } else {
+    // Post to current custom list that user is in
+    List.findOne({name: listName}, function(err, foundList) {
+      foundList.items.push(item);
+      foundList.save();
+      res.redirect('/' + listName);
+    });
+  }
 });
 
 // Render About Me Page
 app.get('/about', (req, res) => {
   res.render('about');
+});
+
+app.post('/delete', (req, res) => {
+  const checkedItemId = req.body.checkbox;
+  const listName = req.body.listName;
+
+  if (listName === "Today") {
+    Item.findByIdAndRemove(checkedItemId, function(err) {
+      if (!err) {
+        console.log("Successfully deleted checked item.");
+        res.redirect('/');
+      }
+    });
+  } else {
+    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList) {
+      if (!err) {
+        console.log("Successfully deleted checked item from custom list.")
+        res.redirect('/' + listName);
+      }
+    });
+  }
 });
 
 app.listen(port, () => console.log(`Server started on port ${port}`));

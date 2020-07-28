@@ -12,13 +12,15 @@
         <button type="submit" name="list" value=<%= listTitle %>>+</button>
       </form>
 
-      <% for (let i = 0; i < newListItems.length; i++) { %>
-        <div class="item">
-          <input type="checkbox">
-          <p> <%= newListItems[i] %> </p>
-        </div>
-
-      <% } %>
+      <% newListItems.forEach((item) => { %>
+        <form action="/delete" method="post">
+          <div class="item">
+            <input type="checkbox" name="checkbox" value="<%= item._id %>" onChange="this.form.submit()">
+            <p> <%= item.name %> </p>
+          </div>
+          <input type="hidden" name="listName" value="<%= listTitle %>"></input>
+        </form>
+      <% }) %>
     </div>
 
 <%- include('footer') -%>
