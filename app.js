@@ -79,7 +79,7 @@ app.get('/', (req, res) => {
 app.get('/:customListName', (req, res) => {
   const customListName = _.capitalize(req.params.customListName);
   // Prevents the user from creating an about list collection, this will route to the /about page.
-  if (req.params.customListName === "About") {
+  if (req.params.customListName === "about") {
     res.render('about');
   } else {
     List.findOne({name: customListName}, function(err, foundList) {
