@@ -13,7 +13,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/public'));
 
 // Mongoose Connection
-mongoose.connect('mongodb://localhost:27017/todoDB', {
+mongoose.connect('mongodb+srv://admin-sean:Zelda505@taskmastercluster.zzfmh.mongodb.net/todoDB', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
