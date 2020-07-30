@@ -57,6 +57,9 @@ const listSchema = new Schema ({
 
 const List = mongoose.model("List", listSchema);
 
+// Prevent favicon from creating new data
+app.get('/favicon.ico', (req, res) => res.status(204));
+
 // Render Home Route
 app.get('/', (req, res) => {
   Item.find({}, function (err, foundItems) {
