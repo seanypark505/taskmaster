@@ -1,10 +1,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoose= require('mongoose');
+const dotenv = require('dotenv').config();
 const _ = require('lodash');
+const mongoose= require('mongoose');
 const port = process.env.PORT || 3000;
 
 const app = express();
+
+const uri = process.env.MONGODB_URI;
 
 app.set('view engine', 'ejs');
 
@@ -13,7 +16,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/public'));
 
 // Mongoose Connection
-mongoose.connect('mongodb://localhost:27017/todoDB', {
+mongoose.connect(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
@@ -57,6 +60,9 @@ const listSchema = new Schema ({
 
 const List = mongoose.model("List", listSchema);
 
+// Prevent favicon from creating new data
+app.get('/favicon.ico', (req, res) => res.status(204));
+
 // Render Home Route
 app.get('/', (req, res) => {
   Item.find({}, function (err, foundItems) {
@@ -79,7 +85,7 @@ app.get('/', (req, res) => {
 app.get('/:customListName', (req, res) => {
   const customListName = _.capitalize(req.params.customListName);
   // Prevents the user from creating an about list collection, this will route to the /about page.
-  if (req.params.customListName === "About") {
+  if (req.params.customListName === "about" || "About") {
     res.render('about');
   } else {
     List.findOne({name: customListName}, function(err, foundList) {
