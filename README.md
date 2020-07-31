@@ -15,10 +15,11 @@ Languages & Technologies
   - MongoDB
   - Mongoose
   - EJS
+  - LoDash
  
 Heroku deployment:
 ------------------
-(https://damp-meadow-79348.herokuapp.com/)
+(https://taskmastertodo.herokuapp.com/)
 
 
 Installation:
