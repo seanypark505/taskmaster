@@ -85,28 +85,24 @@ app.get('/', (req, res) => {
 app.get('/:customListName', (req, res) => {
   const customListName = _.capitalize(req.params.customListName);
   // Prevents the user from creating an about list collection, this will route to the /about page.
-  if (req.params.customListName === "about" || "About") {
-    res.render('about');
-  } else {
-    List.findOne({name: customListName}, function(err, foundList) {
-      if (!err) {
-        if (!foundList) {
-          // Create a new list
-          const list = new List({
-            name: customListName,
-            items: defaultItems
-          });
-          // Save the new list
-          list.save(function() {
-            res.redirect('/' + customListName);
-          });
-        } else {
-          // Show an existing list
-          res.render('list', {listTitle: foundList.name, newListItems: foundList.items});
-        }
+  List.findOne({name: customListName}, {}, (err, foundList) => {
+    if (!err) {
+      if (customListName === "About") {
+        res.render("about");
+      } else if (!foundList) {
+        // create a new list
+        const list = new List({
+          name: customListName,
+          items: defaultItems
+        });
+        list.save();
+        res.redirect("/" + customListName);
+      } else {
+        // show an existing list
+        res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
       }
-    });
-  }
+    }
+  });
 });
 
 // Posts new items to appropriate route
